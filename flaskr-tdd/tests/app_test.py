@@ -1,12 +1,12 @@
-import pytest
-import os
+import json
 from pathlib import Path
+
+import pytest
 
 from project.app import app, db
 
-import json
-
 TEST_DB = "test.db"
+
 
 @pytest.fixture
 def client():
@@ -62,11 +62,6 @@ def test_login_logout(client):
     rv = login(client, app.config["USERNAME"], app.config["PASSWORD"] + "x")
     assert b"Invalid password" in rv.data
 
-def test_delete_message(client):
-    """Ensure the messages are being deleted"""
-    rv = client.get('/delete/1')
-    data = json.loads(rv.data)
-    assert data["status"] == 1
 
 def test_messages(client):
     """Ensure that user can post messages"""
@@ -79,3 +74,14 @@ def test_messages(client):
     assert b"No entries here so far" not in rv.data
     assert b"&lt;Hello&gt;" in rv.data
     assert b"<strong>HTML</strong> allowed here" in rv.data
+
+
+def test_delete_message(client):
+    """Ensure the messages are being deleted"""
+    rv = client.get("/delete/1")
+    data = json.loads(rv.data)
+    assert data["status"] == 0
+    login(client, app.config["USERNAME"], app.config["PASSWORD"])
+    rv = client.get("/delete/1")
+    data = json.loads(rv.data)
+    assert data["status"] == 1
